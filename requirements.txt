@@ -1,0 +1,8 @@
+pyaudio==0.2.11
+whisper==1.2.0
+sqlite3==2.6.0
+threading==3.5.0
+queue==0.2.0
+time==1.2.0
+wave==0.0.2
+subprocess==1.0.0
