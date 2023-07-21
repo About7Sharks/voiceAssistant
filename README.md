@@ -23,7 +23,12 @@ This is a voice transcription app that records audio, transcribes it using the W
 
 ## Usage
 
-To start the app, run the `server.py` script:
+To start the script, run the `record.py` script:
+
+```
+python record.py
+```
+To start the web app, run the `server.py` script:
 
 ```
 python server.py
