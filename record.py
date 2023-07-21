@@ -1,4 +1,4 @@
-import threading
+import multiprocessing
 import queue
 import time
 import pyaudio
@@ -6,9 +6,10 @@ import wave
 import sqlite3
 from sqlite3 import Error
 import subprocess
+import os
+import warnings
 
-# Create a queue to hold the filenames of the audio files to be transcribed
-filename_queue = queue.Queue()
+warnings.filterwarnings("ignore")
 
 def create_connection():
     conn = None;
@@ -42,12 +43,12 @@ def insert_transcription(conn, transcription):
     except Error as e:
         print(f'Error occurred: {e}')
 
-def record_audio():
+def record_audio(filename_queue):
     chunk = 1024  
     sample_format = pyaudio.paInt16  
     channels = 1
     fs = 44100  
-    seconds = 15
+    seconds = 5
     p = pyaudio.PyAudio()  
 
     while True:
@@ -67,8 +68,6 @@ def record_audio():
             frames.append(data)
 
         stream.stop_stream()
-        #stream.close()
-        #p.terminate()
 
         print('Finished recording')
 
@@ -80,32 +79,44 @@ def record_audio():
         wf.close()
 
         filename_queue.put(filename)
-        time.sleep(seconds)  # record every 3 seconds
+        # time.sleep(seconds)
 
-def transcribe_audio():
+def transcribe_audio(filename_queue):
     conn = create_connection()
     create_table(conn)
     while True:
         if not filename_queue.empty():
             filename = filename_queue.get()
-            # Pass the filename to your transcription script
             print(filename)
             result = subprocess.check_output(['python3', 'transcribe.py', filename])
             insert_transcription(conn, result.decode('utf-8'))
 
-
-def main():
-    # Create two threads
-    recorder_thread = threading.Thread(target=record_audio)
-    transcriber_thread = threading.Thread(target=transcribe_audio)
-
-    # Start the threads
-    recorder_thread.start()
-    transcriber_thread.start()
-
-    # Wait for the threads to finish (they won't, because they're infinite loops)
-    recorder_thread.join()
-    transcriber_thread.join()
+def transcribe_audio(filename_queue):
+    conn = create_connection()
+    create_table(conn)
+    while True:
+        if not filename_queue.empty():
+            filename = filename_queue.get()
+            print(filename)
+            result = subprocess.check_output(['python3', 'transcribe.py', filename])
+            insert_transcription(conn, result.decode('utf-8'))
+            os.remove(filename)  # Delete the file after transcribing
 
 if __name__ == "__main__":
-    main()
+    # Create a Manager object to manage the shared state
+    manager = multiprocessing.Manager()
+
+    # Create a Queue object through the manager
+    filename_queue = manager.Queue()
+
+    # Create two processes
+    recorder_process = multiprocessing.Process(target=record_audio, args=(filename_queue,))
+    transcriber_process = multiprocessing.Process(target=transcribe_audio, args=(filename_queue,))
+
+    # Start the processes
+    recorder_process.start()
+    transcriber_process.start()
+
+    # Wait for the processes to finish
+    recorder_process.join()
+    transcriber_process.join()

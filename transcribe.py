@@ -1,6 +1,6 @@
 import sys
 import whisper
-import os
+
 
 def main():
     # sys.argv is a list in Python, which contains the command-line arguments passed to the script.
@@ -10,8 +10,6 @@ def main():
     model = whisper.load_model("base")
     result = model.transcribe(filename)
     print(result["text"])
-    # delete the file
-    os.remove(filename)
 
 if __name__ == "__main__":
     main()
