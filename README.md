@@ -19,13 +19,7 @@ This is a voice transcription app that records audio, transcribes it using the W
     pip install -r requirements.txt
     ```
 
-3. Download the Whisper ASR model:
-
-    ```
-    wget https://example.com/whisper/model
-    ```
-
-   Replace `https://example.com/whisper/model` with the actual URL of the Whisper ASR model.
+3. Download Whisper
 
 ## Usage
 
