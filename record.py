@@ -80,7 +80,7 @@ def record_audio():
         wf.close()
 
         filename_queue.put(filename)
-        time.sleep(15)  # record every 3 seconds
+        time.sleep(seconds)  # record every 3 seconds
 
 def transcribe_audio():
     conn = create_connection()
